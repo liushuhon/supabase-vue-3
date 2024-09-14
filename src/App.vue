@@ -6,25 +6,27 @@
 </template>
 
 <script>
-import { store } from "./store"
-import { supabase } from "./supabase"
-import Auth from "./components/Auth.vue"
-import Profile from "./components/Profile.vue"
+import { store } from './store';
+import { supabase } from './supabase';
+import Auth from './components/Auth.vue';
+import Profile from './components/Profile.vue';
 export default {
   components: {
     Auth,
-    Profile,
+    Profile
   },
 
   setup() {
-    store.user = supabase.auth.user()
+    supabase.auth.getUser().then(({ data }) => {
+      store.user = data.user;
+    });
     supabase.auth.onAuthStateChange((_, session) => {
-      store.user = session.user
-    })
+      store.user = session?.user;
+    });
 
     return {
-      store,
-    }
-  },
-}
+      store
+    };
+  }
+};
 </script>

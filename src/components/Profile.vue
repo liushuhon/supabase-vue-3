@@ -15,103 +15,97 @@
     </div>
 
     <div>
-      <input
-        type="submit"
-        class="button block primary"
-        :value="loading ? 'Loading ...' : 'Update'"
-        :disabled="loading"
-      />
+      <input type="submit" class="button block primary" :value="loading ? 'Loading ...' : 'Update'" :disabled="loading" />
     </div>
 
     <div>
-      <button class="button block" @click="signOut" :disabled="loading">
-        Sign Out
-      </button>
+      <button class="button block" @click="signOut" :disabled="loading">Sign Out</button>
     </div>
   </form>
 </template>
 
 <script>
-import { supabase } from "../supabase"
-import { store } from "../store"
-import { onMounted, ref } from "vue"
-import Avatar from "./Avatar.vue"
+import { supabase } from '../supabase';
+import { store } from '../store';
+import { onMounted, ref } from 'vue';
+import Avatar from './Avatar.vue';
 
 export default {
   components: {
-    Avatar,
+    Avatar
   },
   setup() {
-    const loading = ref(true)
-    const username = ref("")
-    const website = ref("")
-    const avatar_url = ref("")
+    const loading = ref(true);
+    const username = ref('');
+    const website = ref('');
+    const avatar_url = ref('');
 
     async function getProfile() {
       try {
-        loading.value = true
-        store.user = supabase.auth.user()
+        loading.value = true;
+        const {
+          data: { user }
+        } = await supabase.auth.getUser();
+        store.user = user;
+        let { data, error, status } = await supabase.from('profiles').select(`username, website, avatar_url`).eq('id', store.user.id).single();
 
-        let { data, error, status } = await supabase
-          .from("profiles")
-          .select(`username, website, avatar_url`)
-          .eq("id", store.user.id)
-          .single()
-
-        if (error && status !== 406) throw error
+        if (error && status !== 406) throw error;
 
         if (data) {
-          username.value = data.username
-          website.value = data.website
-          avatar_url.value = data.avatar_url
+          username.value = data.username;
+          website.value = data.website;
+          avatar_url.value = data.avatar_url;
         }
       } catch (error) {
-        alert(error.message)
+        alert(error.message);
       } finally {
-        loading.value = false
+        loading.value = false;
       }
     }
 
     async function updateProfile() {
       try {
-        loading.value = true
-        store.user = supabase.auth.user()
+        loading.value = true;
+        const {
+          data: { user }
+        } = await supabase.auth.getUser();
 
+        store.user = user;
         const updates = {
           id: store.user.id,
           username: username.value,
           website: website.value,
           avatar_url: avatar_url.value,
-          updated_at: new Date(),
-        }
+          updated_at: new Date()
+        };
 
-        let { error } = await supabase.from("profiles").upsert(updates, {
-          returning: "minimal", // Don't return the value after inserting
-        })
+        let { error } = await supabase.from('profiles').upsert(updates, {
+          returning: 'minimal' // Don't return the value after inserting
+        });
 
-        if (error) throw error
+        if (error) throw error;
       } catch (error) {
-        alert(error.message)
+        alert(error.message);
       } finally {
-        loading.value = false
+        loading.value = false;
       }
     }
 
     async function signOut() {
       try {
-        loading.value = true
-        let { error } = await supabase.auth.signOut()
-        if (error) throw error
+        loading.value = true;
+        let { error } = await supabase.auth.signOut();
+        if (error) throw error;
       } catch (error) {
-        alert(error.message)
+        alert(error.message);
       } finally {
-        loading.value = false
+        loading.value = false;
       }
     }
 
     onMounted(() => {
-      getProfile()
-    })
+      getProfile();
+    });
 
     return {
       store,
@@ -121,8 +115,8 @@ export default {
       avatar_url,
 
       updateProfile,
-      signOut,
-    }
-  },
-}
+      signOut
+    };
+  }
+};
 </script>
